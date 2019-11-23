@@ -22,6 +22,12 @@ td = ts.utc(2019, 11, 23)  # 甲子日(0), 星期六
 bd = ts.utc(1978, 3, 4)  # 乙丑日(1), 星期六
 tz_cst = timezone('Asia/Taipei')
 tz_gmt = timezone('Europe/London')
+# period 常數
+period_years = 4418
+period_months = 54643
+period_days = 1613640
+p0_orig_jd = 613270.5  # 第 0 紀首日 JD
+p1_orig_jd = 2226910.5  # 第 1 紀首日 JD
 
 
 def ganzhi_name(n):
@@ -154,6 +160,7 @@ def find_new_moon_winter_solstice_day(start_time, end_time, timezone=tz_gmt):
     e = load('de422.bsp')
     t, y = almanac.find_discrete(start_time, end_time, almanac.seasons(e))
     dd = delta_day_between_timezone(tz_gmt, timezone)
+    results = []
     for yi, ti in zip(y, t):
         if yi != 3:
             continue
@@ -169,11 +176,18 @@ def find_new_moon_winter_solstice_day(start_time, end_time, timezone=tz_gmt):
         y, m, d = dt.year, dt.month, dt.day
         jd = ts.utc(y, m, d).tt
         print(y, m, d, jd, ti.utc, tnm.utc)
+        results.append(jd)
+    return results
 
 
 def find_period_origin():
-    ts = load.timescale()
-    planets = load('de422.bsp')
+    t0 = ts.utc(1380, 1, 1)
+    t1 = ts.utc(1389, 12, 31)
+    nmwsd = find_new_moon_winter_solstice_day(t0, t1)[0]
+    period = round(4418 * tropical_year)
+    prev_nmwsd = nmwsd - period
+    print('第0紀 JD:', round(nmwsd, 1))
+    print('第1紀 JD:', round(prev_nmwsd, 1))
 
 
 if __name__ == "__main__":
@@ -186,16 +200,14 @@ if __name__ == "__main__":
     # find_best_leap_year_loop(tropical_year)
 
     # 求朔旦冬至
-    t0 = ts.utc(1, 1, 1)
-    t1 = ts.utc(2999, 12, 31)
-    find_new_moon_winter_solstice_day(t0, t1)
-    print('----------------')
-    find_new_moon_winter_solstice_day(t0, t1, tz_cst)
-    # print(delta_day_between_timezone(tz_gmt, tz_cst))
-    # print(delta_day_between_timezone(tz_gmt, tz_gmt))
+    # t0 = ts.utc(1, 1, 1)
+    # t1 = ts.utc(2999, 12, 31)
+    # find_new_moon_winter_solstice_day(t0, t1)
+    # print('----------------')
+    # find_new_moon_winter_solstice_day(t0, t1, tz_cst)
 
     # 求紀元始日
-    # find_period_origin()
+    find_period_origin()
 
     # test
     # -*- ganzhi_of_jd()
@@ -206,6 +218,9 @@ if __name__ == "__main__":
     # print(is_jiazi(ts.now())) # 2019-11-23, 甲子
     # print(is_jiazi(ts.utc(1910, 10, 10))) # 戊申
     # print(is_jiazi(ts.utc(1912, 2, 18))) # 甲子
+    # -*- delta_day_between_timezone()
+    # print(delta_day_between_timezone(tz_gmt, tz_cst))
+    # print(delta_day_between_timezone(tz_gmt, tz_gmt))
     # -*- ganzhi_of_jd_with_timezone()
     # dd = delta_day_between_timezone(tz_gmt, tz_cst)
     # tt0 = ts.utc(2019, 11, 22, 21, 0, 0).tt  # UTC 21:00, CST 05:00(次日)
