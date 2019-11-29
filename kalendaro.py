@@ -6,9 +6,12 @@ from datetime import timedelta, datetime
 from skyfield.api import load
 from skyfield import almanac
 from pytz import timezone
+from jdcal import jd2gcal, jd2jcal
 
 gan = '甲乙丙丁戊己庚辛壬癸'
 zhi = '子丑寅卯辰巳午未申酉戌亥'
+season_name_dict = {0: '春分', 1: '夏至', 2: '秋分', 3: '冬至'}
+moon_phase_name_dict = {0: ' 朔 ', 1: '上弦', 2: ' 望 ', 3: '下弦'}
 
 tropical_year = 365.242190  # 臺北市立天文科學教育館：《天文年鑑2019》，頁 374，太陽年。
 synodic_month = 29.530589  # 臺北市立天文科學教育館：《天文年鑑2019》，頁 375，朔望月。
@@ -28,6 +31,7 @@ period_months = 54643
 period_days = 1613640
 p0_orig_jd = 613270.5  # 第 0 紀首日 JD
 p1_orig_jd = 2226910.5  # 第 1 紀首日 JD
+gh_y0_jd = 1413879.5 # 共和零年冬至
 
 
 def ganzhi_name(n):
@@ -190,6 +194,130 @@ def find_period_origin():
     print('第1紀 JD:', round(prev_nmwsd, 1))
 
 
+def generate_seasons_table(t0, t1):
+    if t0.tt < 625648.5:
+        t0 = ts.tt_jd(625649)
+    e = load('de422.bsp')
+    t, y = almanac.find_discrete(t0, t1, almanac.seasons(e))
+    year_no = 0
+    print('年序,分至,Season,JD,年,月,日,時,分,秒,子輿紀,子輿日,年干支')
+    for yi, ti in zip(y, t):
+        if yi == 3:
+            year_no += 1
+        season_name = season_name_dict[yi]
+        dt = ti.tt_calendar()
+        zyp, zyd = 0, ti.tt - p0_orig_jd
+        if zyd > period_days:
+            zyp, zyd = 1, ti.tt - p1_orig_jd
+        ganzhi_order = (year_no+56) % 60
+        print('{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}'.
+              format(year_no, season_name, yi, ti.tt, *dt, zyp, zyd, ganzhi_name(ganzhi_order), ganzhi_order+1))
+
+
+def is_in_range(t, t0, t1):
+    if t0 < t1:
+        return (t0 <= t) and (t <= t1)
+    else:
+        return (t0 <= t <= 59) or (0 <= t <= t1)
+
+
+def jinhou_su_bianzhong_kao():
+    t0, t1 = ts.tt(-999, 1, 1), ts.tt(-771, 12, 31)
+    results = []
+    e = load('de422.bsp')
+    t, y = almanac.find_discrete(t0, t1, almanac.seasons(e))
+    for yi, ti in zip(y, t):
+        astro_key = 'S_{0}'.format(yi)
+        season_name = season_name_dict[yi]
+        dt = ti.tt_calendar()
+        zyd = ti.tt - p0_orig_jd
+        ganzhi_order = int(zyd) % 60
+        ganzhi = ganzhi_name(ganzhi_order)
+        results.append([astro_key, season_name, ti.tt,
+                        *dt, zyd, ganzhi, ganzhi_order+1])
+    t, y = almanac.find_discrete(t0, t1, almanac.moon_phases(e))
+    for yi, ti in zip(y, t):
+        astro_key = 'M_{0}'.format(yi)
+        moon_phase_name = moon_phase_name_dict[yi]
+        dt = ti.tt_calendar()
+        zyd = ti.tt - p0_orig_jd
+        ganzhi_order = int(zyd) % 60
+        ganzhi = ganzhi_name(ganzhi_order)
+        results.append([astro_key, moon_phase_name, ti.tt,
+                        *dt, zyd, ganzhi, ganzhi_order+1])
+    results.sort(key=lambda x: x[-3])
+    print('天象碼,天象,JD,年,月,日,時,分,秒,子輿日,日干支,日干支序')
+    for r in results:
+        print('{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}'.format(*r))
+    print('----------------')
+    first_month_found = False
+    years = {}  # year_index: months
+    months = []  # [month_indexes, month_indexes, month_indexes...]
+    month_indexes = []
+    year_index = None
+    for i, r in enumerate(results):
+        if r[0] == 'M_0':
+            month_indexes.append(i)
+        elif r[0] == 'M_1':
+            month_indexes.append(i)
+        elif r[0] == 'M_2':
+            month_indexes.append(i)
+        elif r[0] == 'M_3':
+            month_indexes.append(i)
+            if first_month_found:
+                if len(months) >= 12:
+                    years[year_index] = months
+                months = [month_indexes]
+                first_month_found = False
+            else:
+                if len(month_indexes) == 4:
+                    months.append(month_indexes)
+            month_indexes = []
+        elif r[0] == 'S_3':
+            first_month_found = True
+            year_index = i
+    for year_index, months in years.items():
+        year_key = results[year_index][3]
+        print('{0}年({1})'.format(year_key, year_index))
+        for i, month in enumerate(months):
+            mp = results[month[0]]
+            print(
+                '    {0:>2}月,{1:4d}-{2:02d}-{3:02d},{4},{5},{6}'.format(i+1, *mp[3:6], *mp[-2:], mp[2]))
+    print('----------------')
+    for year_index, months in years.items():
+        for i in range(3):
+            jan_idx, feb_idx, mar_idx, _, _, jun_idx, jul_idx = months[i:i+7]
+            jan = results[jan_idx[0]]
+            feb = results[feb_idx[0]]
+            mar = results[mar_idx[0]]
+            jun = results[jun_idx[0]]
+            jul = results[jul_idx[0]]
+            jan_range = ((jan[-1]+59) % 60, feb[-1])
+            feb_range = ((feb[-1]+59) % 60, mar[-1])
+            jun_range = ((jun[-1]+59) % 60, jul[-1])
+            if year_index == 8286 and i == 2:
+                print(jan_range)
+                print(feb_range)
+                print(jun_range)
+            # check jan, 55 is one-base
+            if not is_in_range(55, *jan_range):
+                continue
+            # check feb, 39,40 is one-base
+            if not is_in_range(39, *feb_range):
+                continue
+            if not is_in_range(40, *feb_range):
+                continue
+            # check jun, 15,24,27 is one-base
+            if not is_in_range(15, *jun_range):
+                continue
+            if not is_in_range(24, *jun_range):
+                continue
+            if not is_in_range(27, *jun_range):
+                continue
+            print('{0}年{1}月,{2},{3},JD:{4}'.format(
+                results[year_index][3], i+1, *jan[-2:], jan[2]))
+
+
 if __name__ == "__main__":
     # 求紀元週期
     # find_period(tropical_year, synodic_month, 14000)
@@ -207,7 +335,23 @@ if __name__ == "__main__":
     # find_new_moon_winter_solstice_day(t0, t1, tz_cst)
 
     # 求紀元始日
-    find_period_origin()
+    # find_period_origin()
+
+    # 求分至表
+    # t0 = ts.tt_jd(p0_orig_jd-1)
+    # t1 = ts.tt(2929, 12, 31)
+    # generate_seasons_table(t0, t1)
+
+    # 晉侯酥編鐘考
+    # jinhou_su_bianzhong_kao()
+    print('儒略週期起點(GCal):', jd2gcal(0, 0))
+    print('儒略週期起點(JCal):', jd2jcal(0, 0))
+    print('子輿週期紀元(GCal):', jd2gcal(0, p0_orig_jd))
+    print('子輿週期紀元(JCal):', jd2jcal(0, p0_orig_jd))
+    print('共和零年冬至(GCal):', jd2gcal(0, gh_y0_jd))
+    print('共和零年冬至(JCal):', jd2jcal(0, gh_y0_jd))
+    print('朔旦冬至甲子(GCal):', jd2gcal(0, p1_orig_jd))
+    print('朔旦冬至甲子(JCal):', jd2jcal(0, p1_orig_jd))
 
     # test
     # -*- ganzhi_of_jd()
