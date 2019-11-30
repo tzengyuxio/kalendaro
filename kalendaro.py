@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from skyfield.api import load
 from skyfield import almanac
 from pytz import timezone
-from jdcal import jd2gcal, jd2jcal
+from jdcal import jd2gcal, jd2jcal, gcal2jd
 
 gan = '甲乙丙丁戊己庚辛壬癸'
 zhi = '子丑寅卯辰巳午未申酉戌亥'
@@ -31,7 +31,11 @@ period_months = 54643
 period_days = 1613640
 p0_orig_jd = 613270.5  # 第 0 紀首日 JD
 p1_orig_jd = 2226910.5  # 第 1 紀首日 JD
-gh_y0_jd = 1413879.5 # 共和零年冬至
+gh_y0_jd = 1413879.5  # 共和零年冬至
+gh_y0_zd = gh_y0_jd - p0_orig_jd  # 共和零年冬至
+large_leap_cycle_days = 128*365+31  # 46751
+small_leap_cycle_days = 4*365+1  # 1461
+days_of_months = [0, 30, 61, 91, 122, 152, 183, 213, 244, 274, 305, 335, 366]
 
 
 def ganzhi_name(n):
@@ -318,6 +322,42 @@ def jinhou_su_bianzhong_kao():
                 results[year_index][3], i+1, *jan[-2:], jan[2]))
 
 
+def jd2zd(jd):
+    zd = jd - p0_orig_jd
+    p, d = int(zd//period_days), zd % period_days
+    return p, d
+
+
+def jd2tcal(jd):
+    p, d = jd2zd(jd)
+    return zd2tcal(p, d)
+
+
+def zd2tcal(p, d):
+    padding_cycles = 0
+    ed = (p*period_days + d) - gh_y0_zd
+    while ed < 0:
+        ed += large_leap_cycle_days
+        padding_cycles += 1
+    q1, r1 = ed // large_leap_cycle_days, ed % large_leap_cycle_days
+    q2, r2 = r1 // small_leap_cycle_days, r1 % small_leap_cycle_days
+    yy = 128 * q1 + 4 * q2 + (r2//365) - (128*padding_cycles)
+    diny = r2 % 365 + 1  # days in year
+    mm, dt = 0, 0
+    for i in range(13):
+        if diny <= days_of_months[i]:
+            dt = diny - days_of_months[i-1]
+            break
+        mm += 1
+    dd, tt = int(dt//1), dt % 1
+    return (int(yy), mm, dd, tt)
+
+
+def gcal2tcal(y, m, d):
+    jd1, jd2 = gcal2jd(y, m, d)
+    return jd2tcal(jd1+jd2)
+
+
 if __name__ == "__main__":
     # 求紀元週期
     # find_period(tropical_year, synodic_month, 14000)
@@ -344,6 +384,8 @@ if __name__ == "__main__":
 
     # 晉侯酥編鐘考
     # jinhou_su_bianzhong_kao()
+
+    # 各種日期計算、轉換
     print('儒略週期起點(GCal):', jd2gcal(0, 0))
     print('儒略週期起點(JCal):', jd2jcal(0, 0))
     print('子輿週期紀元(GCal):', jd2gcal(0, p0_orig_jd))
@@ -352,6 +394,17 @@ if __name__ == "__main__":
     print('共和零年冬至(JCal):', jd2jcal(0, gh_y0_jd))
     print('朔旦冬至甲子(GCal):', jd2gcal(0, p1_orig_jd))
     print('朔旦冬至甲子(JCal):', jd2jcal(0, p1_orig_jd))
+    for jd in [0, p0_orig_jd, p0_orig_jd+1000, p1_orig_jd-1000, p1_orig_jd, ts.now().tt]:
+        print(jd, ':', jd2zd(jd))
+    # print(large_leap_cycle_days)
+    # print(small_leap_cycle_days)
+    print(jd2tcal(gh_y0_jd-1))  # (-1, 12, 30, 0.0)
+    print(jd2tcal(gh_y0_jd))  # (0, 1, 1, 0.0)
+    print(jd2tcal(gh_y0_jd+365))  # (1, 1, 1, 0.0)
+    print(jd2tcal(gh_y0_jd+366))  # (1, 1, 2, 0.0)
+    print(jd2tcal(p1_orig_jd))  # (2226, 1, 3)
+    print(gcal2tcal(1978, 3, 4))  # (2819, 3, 15, 0.0)
+    print(gcal2tcal(2019, 11, 30))  # (2819, 3, 15, 0.0)
 
     # test
     # -*- ganzhi_of_jd()
