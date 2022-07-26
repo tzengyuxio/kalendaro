@@ -1,6 +1,7 @@
 import constants
 
 
+# 求最佳閏年循環
 def find_best_leap_year_loop(max_year=1000):
     # delta 高於這個值就不考慮
     tolerance = abs(constants.tropical_year * 4 - round(constants.tropical_year * 4))
@@ -21,7 +22,7 @@ def find_best_leap_year_loop(max_year=1000):
         avg, min_avg = best_leap_j[2], best_leap_i[3]
         if avg > tolerance:
             continue
-        if avg > max(min_avg, precision) and i not in [100, 400]:
+        if avg > max(min_avg, precision) and i not in [100, 400, 900]:
             continue
         results.append([i, *best_leap_j])
         if avg < min_avg:
