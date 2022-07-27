@@ -6,6 +6,16 @@
 共和零年冬至(JCal): (-842, 12, 29, 0.0)
 朔旦冬至甲子(GCal): (1384, 12, 21, 0.0)
 朔旦冬至甲子(JCal): (1384, 12, 13, 0.0)
+
+    # -3039 12 19 611440.5004882407 CalendarTuple(year=-3039, month=12, day=19, hour=22, minute=59, second=19.840786174296227) CalendarTuple(year=-3039, month=12, day=19, hour=3, minute=9, second=13.946844205616799)
+    # -3031 12 19 614362.5004882407 CalendarTuple(year=-3031, month=12, day=19, hour=21, minute=34, second=9.670948177932587) CalendarTuple(year=-3031, month=12, day=20, hour=10, minute=44, second=36.86352962291858)
+-2610 12 20 768130.5004882407 CalendarTuple(year=-2610, month=12, day=20, hour=1, minute=50, second=22.708696589230385) CalendarTuple(year=-2610, month=12, day=19, hour=9, minute=45, second=43.88535814023635)
+-1065 12 21 1332430.5004882407 CalendarTuple(year=-1065, month=12, day=21, hour=5, minute=30, second=50.9646465036858) CalendarTuple(year=-1065, month=12, day=20, hour=10, minute=27, second=33.60910193658492)
+-962 12 21 1370050.5004882407 CalendarTuple(year=-962, month=12, day=21, hour=5, minute=56, second=41.904453799485054) CalendarTuple(year=-962, month=12, day=21, hour=16, minute=48, second=35.91549189424404)
+-218 12 20 1641790.5004882407 CalendarTuple(year=-218, month=12, day=20, hour=22, minute=49, second=1.070334330557671) CalendarTuple(year=-218, month=12, day=21, hour=5, minute=16, second=46.10765190458187)
+583 12 21 1934350.5004882407 CalendarTuple(year=583, month=12, day=21, hour=11, minute=53, second=52.87463234401366) CalendarTuple(year=583, month=12, day=22, hour=2, minute=46, second=0.24871067738422425)
+1384 12 21 2226910.5004882407 CalendarTuple(year=1384, month=12, day=21, hour=0, minute=17, second=8.54163469409832) CalendarTuple(year=1384, month=12, day=21, hour=7, minute=34, second=54.144572034841985)
+
 0 : (-1, 1000369.5)
 613270.5 : (0, 0.0)
 614270.5 : (0, 1000.0)
