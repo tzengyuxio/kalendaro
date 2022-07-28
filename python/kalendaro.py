@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from math import floor, modf
-from skyfield import api
-from skyfield import almanac
-from skyfield.api import load
 import datetime
+from math import floor, modf
+
+from skyfield import api
+from skyfield.api import load
 
 ts = load.timescale()
 e = api.load('de422.bsp')
@@ -16,6 +16,8 @@ zhi = '子丑寅卯辰巳午未申酉戌亥'
 weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 tropical_year = 365.242190  # 《2019天文年鑑》, p.374, 太陽年
 synodic_month = 29.530589  # 《2019天文年鑑》, p.375, 朔望月
+
+
 # tropical_year = 365.24219264  # Jacobs
 # synodic_month = 29.5305888844  # Jacobs
 
@@ -28,51 +30,6 @@ def ganzhi_name(n):
 
 def weekday_name(n):
     return weekdays[n]
-
-
-def ganzhi_of_jd(jd):
-    """
-    0 = 甲子
-    59 = 癸亥
-    """
-    return (int(floor(jd + .5)) - 11) % 60
-
-
-def weekday_of_jd(jd):
-    """
-    0 = Sunday
-    1 = Monday
-    6 = Saturday
-    """
-    return (int(floor(jd + .5)) + 1) % 7
-
-
-def find_winter_solstice(t0, t1):
-    t, y = almanac.find_discrete(t0, t1, almanac.seasons(e))
-    for yi, ti in zip(y, t):
-        """
-        0 Vernal Equinox
-        1 Summer Solstice
-        2 Autumnal Equinox
-        3 Winter Solstice
-        """
-        if yi == 3:
-            return ti
-    return None
-
-
-def find_new_moon(t0, t1):
-    t, y = almanac.find_discrete(t0, t1, almanac.moon_phases(e))
-    for yi, ti in zip(y, t):
-        """
-        0 New Moon
-        1 First Quarter
-        2 Full Moon
-        3 Last Quarter
-        """
-        if yi == 0:
-            return ti
-    return None
 
 
 def find_dzsd(t, cnt):
@@ -97,7 +54,7 @@ def find_dzsd(t, cnt):
                     name_gz, name_wd = ganzhi_name(ganzhi), weekday_name(weekday)
                     delta = abs(tws.tt - tnm.tt)
                     dzsd = [tws.tt, tws.utc_iso(' '), tnm.tt, tnm.utc_iso(), name_gz, name_wd, delta]
-                    print('[{7:4d}] {0:>6.9f},{1:>22s},{2:>6.9f},{3:>22s},{4},{5},{6:0.5f}'.format(*dzsd, id) )
+                    print('[{7:4d}] {0:>6.9f},{1:>22s},{2:>6.9f},{3:>22s},{4},{5},{6:0.5f}'.format(*dzsd, id))
         t1 = t0
         t0 = ts.tt_jd(t1.tt - 360)
 
@@ -121,7 +78,7 @@ def find_fraction(num_float, min_denominator, max_denominator):
 
 
 # 19年7閏, 391年144閏(大明曆)
-special_year = [19, 76, 391,4560]
+special_year = [19, 76, 391, 4560]
 
 
 def find_zhang(ylen, mlen, max_year=99999):
