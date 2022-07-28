@@ -1,4 +1,4 @@
-from math import floor
+from math import floor, modf
 
 from pytz import timezone
 
@@ -97,18 +97,18 @@ def tcal2zd_2(y, m, d):
 
 
 def zd2tcal_1(zd):  # method 1
-    padding_cycles = 0
-    ed = zd  # ed = (p * period_days + d) - (gh_y1_zd - 1)
+    num_padding_cycle = 0
+    ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
     while ed < 0:
         ed += large_leap_cycle_days
-        padding_cycles += 1
+        num_padding_cycle += 1
     q1, r1 = ed // large_leap_cycle_days, ed % large_leap_cycle_days
     if r1 == 0:
         q1, r1 = q1 - 1, large_leap_cycle_days
     q2, r2 = r1 // small_leap_cycle_days, r1 % small_leap_cycle_days
     if r2 == 0:
         q2, r2 = q2 - 1, small_leap_cycle_days
-    yy = 1 + 128 * q1 + 4 * q2 + (r2 // 365) - (128 * padding_cycles)
+    yy = 1 + 128 * q1 + 4 * q2 + (r2 // 365) - (128 * num_padding_cycle)
     diny = r2 % 365  # days in year
     mm, dt = 0, 0
     for i in range(13):
@@ -145,7 +145,7 @@ def zd2tcal_2(zd):  # method 2 [ok]
             ed = ed - days_of_months[i - 1]
             break
     dd, tt = int(ed // 1), (ed % 1)
-    return yy, mm, dd, tt
+    return yy, mm, dd, float(tt)
 
 
 def zd2tcal_3(zd):  # method 3
@@ -160,10 +160,38 @@ def zd2tcal_3(zd):  # method 3
     A = ed + 1 + alpha - floor(alpha / 4.0)  # 日數加上週期數調整
     C = floor(A / 365.25)
     ed = ed - floor(A * 365.25)
-    print(A, ed)
     B = floor(ed / 30.6001)
     dd = ed - floor(B * 30.6001) - 1
     # yy = A - (padding_cycles*128) + 1
     yy = A + 1
     mm = B + 1
+    return yy, mm, int(dd), tt
+
+
+def zd2tcal_4(zd):  # method 4, base on method 2
+    """ step by step 逼近法 """
+    ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
+    yy, mm, dd, tt = 1, 1, 1, 0.0
+    while ed <= 0:
+        ed += large_leap_cycle_days
+        yy -= 128
+    while ed > large_leap_cycle_days:
+        ed -= large_leap_cycle_days
+        yy += 128
+    while ed > small_leap_cycle_days:
+        ed -= small_leap_cycle_days
+        yy += 4
+    for year_days in [365, 365, 365, 366]:
+        if ed > year_days:
+            ed -= year_days
+            yy += 1
+        else:
+            break
+    for month_days in [30, 31, 30, 31, 30, 31, 30, 31, 30, 31, 30, 31]:
+        if ed > month_days:
+            ed -= month_days
+            mm += 1
+        else:
+            break
+    tt, dd = modf(ed)
     return yy, mm, int(dd), tt
