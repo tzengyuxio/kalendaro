@@ -1,3 +1,5 @@
+from math import floor
+
 from pytz import timezone
 
 TZ_CST = timezone('Asia/Taipei')
@@ -14,6 +16,154 @@ cycle_years = 4418
 cycle_months = 54643
 cycle_days = 1613640
 
+# 儒略日, 儒略曆, 格里曆
+JD_0 = 0
+JD_GCal_0001_01_01 = 1721425.5
+JD_JCal_0001_01_01 = 1721423.5
+JD_GCal_1978_03_04 = 2443571.5
+
 # 子輿日
+JD_ZD0 = 613270.5  # 2226910.5 - 1613640
+JD_ZD1 = 2226910.5  # 1384/12/21 (modern Gregorian calendar)
+
+ZD_GHCal_0000_01_01 = 800609  # JD_GHCal_0000_01_01 - JD_ZD0
+ZD_GHCal_0001_01_01 = 800974  # JD_GHCal_0001_01_01 - JD_ZD0
 
 # 共和曆
+large_leap_cycle_days = 128 * 365 + 31  # 46751
+small_leap_cycle_days = 4 * 365 + 1  # 1461
+days_of_months = [0, 30, 61, 91, 122, 152, 183, 213, 244, 274, 305, 335, 366]
+days_of_years = [0, 365, 730, 1095, 1461]
+
+JD_GHCal_0000_01_01 = 1413879.5
+JD_GHCal_0001_01_01 = 1414244.5
+
+# 干支
+gan = '甲乙丙丁戊己庚辛壬癸'
+zhi = '子丑寅卯辰巳午未申酉戌亥'
+
+
+def ganzhi_name(n):
+    return gan[n % 10] + zhi[n % 12]
+
+
+def ganzhi_of_jd(jd):
+    """
+    0 = 甲子
+    59 = 癸亥
+    """
+    return (int(floor(jd + .5)) - 11) % 60
+
+
+# 星期
+weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+
+def weekday_of_jd(jd):
+    """
+    0 = Sunday
+    1 = Monday
+    6 = Saturday
+    """
+    return (int(floor(jd + .5)) + 1) % 7
+
+
+# Converters
+
+def jd2zd(jd):
+    return jd - JD_ZD0
+
+
+def jd2zd_parted(jd):
+    zd = jd - JD_ZD0
+    p, d = int(zd // cycle_days), zd % cycle_days
+    return p, d
+
+
+def tcal2zd_1(y, m, d):
+    days = (y - 1) * 365 + floor((y - 1) // 4) - floor((y - 1) // 128)
+    days += days_of_months[m - 1]
+    days += d
+    days += (ZD_GHCal_0001_01_01 - 1)
+    return days
+
+
+def tcal2zd_2(y, m, d):
+    # 以 (-2191, 1, 1, ZD=364) 為參考起始點 (-2191 為閏年)
+    # 並利用 -2303年 來作為計算 128 年循環 (-2304 為不閏年)
+    days = floor((y + 2191) * 365.25) - floor((y + 2303) / 128.0) + \
+           floor((m - 1) * 30.5001) + d + 363
+    return days
+
+
+def zd2tcal_1(zd):  # method 1
+    padding_cycles = 0
+    ed = zd  # ed = (p * period_days + d) - (gh_y1_zd - 1)
+    while ed < 0:
+        ed += large_leap_cycle_days
+        padding_cycles += 1
+    q1, r1 = ed // large_leap_cycle_days, ed % large_leap_cycle_days
+    if r1 == 0:
+        q1, r1 = q1 - 1, large_leap_cycle_days
+    q2, r2 = r1 // small_leap_cycle_days, r1 % small_leap_cycle_days
+    if r2 == 0:
+        q2, r2 = q2 - 1, small_leap_cycle_days
+    yy = 1 + 128 * q1 + 4 * q2 + (r2 // 365) - (128 * padding_cycles)
+    diny = r2 % 365  # days in year
+    mm, dt = 0, 0
+    for i in range(13):
+        if diny <= days_of_months[i]:
+            dt = diny - days_of_months[i - 1]
+            break
+        mm += 1
+    dd, tt = int(dt // 1), dt % 1
+    return int(yy), mm, dd, tt
+
+
+def zd2tcal_2(zd):  # method 2 [ok]
+    padding_cycles = 0
+    ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
+    yy, mm, dd, tt = 0, 0, 0, 0.0
+    while ed <= 0:
+        ed += large_leap_cycle_days
+        padding_cycles += 1
+    while ed > large_leap_cycle_days:
+        ed -= large_leap_cycle_days
+        yy += 128
+    while ed > small_leap_cycle_days:
+        ed -= small_leap_cycle_days
+        yy += 4
+    for i in range(5):
+        if ed <= days_of_years[i]:
+            yy += i
+            ed = ed - days_of_years[i - 1]
+            break
+    yy -= 128 * padding_cycles
+    for i in range(13):
+        if ed <= days_of_months[i]:
+            mm = i
+            ed = ed - days_of_months[i - 1]
+            break
+    dd, tt = int(ed // 1), (ed % 1)
+    return yy, mm, dd, tt
+
+
+def zd2tcal_3(zd):  # method 3
+    # padding_cycles = 0
+    # ed = (p * cycle_days + d) - (gh_y1_zd)
+    ed = zd - ZD_GHCal_0001_01_01
+    ed, tt = int(ed // 1), (ed % 1)
+    # while ed <= 0:
+    #     ed += large_leap_cycle_days
+    #     padding_cycles += 1
+    alpha = floor(ed / 46751.0)  # 大週期數
+    A = ed + 1 + alpha - floor(alpha / 4.0)  # 日數加上週期數調整
+    C = floor(A / 365.25)
+    ed = ed - floor(A * 365.25)
+    print(A, ed)
+    B = floor(ed / 30.6001)
+    dd = ed - floor(B * 30.6001) - 1
+    # yy = A - (padding_cycles*128) + 1
+    yy = A + 1
+    mm = B + 1
+    return yy, mm, int(dd), tt

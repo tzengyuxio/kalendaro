@@ -17,10 +17,10 @@ eph = load(ephemeris)
 ts = load.timescale()
 
 
-def is_same_day(t0, t1, timezone=constants.TZ_GMT):
+def is_same_day(t0, t1):
     y0, m0, d0, _, _, _ = t0.tt_calendar()
     y1, m1, d1, _, _, _ = t1.tt_calendar()
-    return (y0 == y1) and (m0 == m1) # and (d0 == d1)
+    return (y0 == y1) and (m0 == m1) and (d0 == d1)
 
 
 def ganzhi_of_jd(jd):
@@ -72,7 +72,7 @@ def find_new_moon(t0, t1):
     return None
 
 
-def find_new_moon_winter_solstice(start_time, end_time, timezone=constants.TZ_GMT):
+def find_new_moon_winter_solstice(start_time, end_time):
     """求朔旦冬至
     :param start_time:
     :param end_time:
@@ -80,6 +80,7 @@ def find_new_moon_winter_solstice(start_time, end_time, timezone=constants.TZ_GM
     :return:
     """
     t, y = almanac.find_discrete(start_time, end_time, almanac.seasons(eph))
+    print('日期, JD, 冬至, 朔旦')
     for yi, ti in zip(y, t):
         if yi != 3:
             continue
@@ -87,15 +88,16 @@ def find_new_moon_winter_solstice(start_time, end_time, timezone=constants.TZ_GM
         tnm = find_new_moon(ti0, ti1)  # time new moon, 朔日
         if tnm is None:
             continue
-        if not is_same_day(ti, tnm, timezone):
+        if not is_same_day(ti, tnm):
             continue
         if ganzhi_of_jd(ti.tt) != 0:
             continue
         y, m, d, _, _, _ = ti.tt_calendar()
         jd = ts.utc(y, m, d).tt
-        print(y, m, d, jd, ti.utc, tnm.utc)
+        print('{:>5}/{:>02}/{:>02}, {:>12.4f}, {}, {}'.format(y, m, d, jd, ti.utc_iso(), tnm.utc_iso()))
     #     results.append(jd)
     # return results
+
 
 def find_3034(start_time, end_time):
     t, y = almanac.find_discrete(start_time, end_time, almanac.seasons(eph))
@@ -109,6 +111,7 @@ def find_3034(start_time, end_time):
         y, m, d, _, _, _ = ti.tt_calendar()
         jd = ts.utc(y, m, d).tt
         print(y, m, d, jd, ti.utc, tnm.utc)
+
 
 def find_cycle(solar_len, lunar_len, max_year=7000):
     """求週期
@@ -165,13 +168,10 @@ if __name__ == "__main__":
 
     print('\n\n----------------------------------------\n\n')
 
-    t0 = ts.utc(-3200, 1, 1)
-    t1 = ts.utc(1800, 12, 31)
+    begin = ts.utc(-3200, 1, 1)
+    end = ts.utc(1800, 12, 31)
     # t1 = ts.utc(2999, 12, 31)
-    find_new_moon_winter_solstice(t0, t1)
-
-
-
+    find_new_moon_winter_solstice(begin, end)
 
     # find_3034(ts.utc(-3040, 1, 1), ts.utc(-3030, 1, 1))
     # -3039 12 19 611440.5004882407 CalendarTuple(year=-3039, month=12, day=19, hour=22, minute=59, second=19.840786174296227) CalendarTuple(year=-3039, month=12, day=19, hour=3, minute=9, second=13.946844205616799)
