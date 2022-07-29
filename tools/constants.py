@@ -121,6 +121,7 @@ def zd2tcal_1(zd):  # method 1
 
 
 def zd2tcal_2(zd):  # method 2 [ok]
+    _, zd = modf(zd)
     padding_cycles = 0
     ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
     yy, mm, dd, tt = 0, 0, 0, 0.0
@@ -173,6 +174,7 @@ def zd2tcal_4(zd):  # method 4, base on method 2
     method 2: 0.513753 s (100,000 次)
     method 4: 0.491170 s, 95.6%
     """
+    _, zd = modf(zd)
     ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
     yy, mm, dd, tt = 1, 1, 1, 0.0
     while ed <= 0:
