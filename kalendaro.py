@@ -41,16 +41,6 @@ days_of_months = [0, 30, 61, 91, 122, 152, 183, 213, 244, 274, 305, 335, 366]
 days_of_years = [0, 365, 730, 1095, 1461]
 
 
-def ganzhi_name(n):
-    g = n % 10
-    z = n % 12
-    return gan[g] + zhi[z]
-
-
-def ganzhi_of_jd(jd):
-    return (int(floor(jd + .5)) - 11) % 60
-
-
 def ganzhi_of_jd_with_delta(jd, delta):
     return (int(floor(jd - delta + .5)) - 11) % 60
 
@@ -230,16 +220,9 @@ def jinhou_su_bianzhong_kao():
                 results[year_index][3], i + 1, *jan[-2:], jan[2]))
 
 
-def jd2zd(jd):
-    zd = jd - p0_orig_jd
-    p, d = int(zd // period_days), zd % period_days
-    return p, d
-
-
 def jd2tcal(jd):
     p, d = jd2zd(jd)
     return zd2tcal(p, d)
-
 
 
 def test_tcal2zd():

@@ -80,12 +80,12 @@ def jd2zd_parted(jd):
     return p, d
 
 
-def tcal2zd_1(y, m, d):
+def tcal2zd_1(y, m, d, t=.0):
     days = (y - 1) * 365 + floor((y - 1) // 4) - floor((y - 1) // 128)
     days += days_of_months[m - 1]
     days += d
     days += (ZD_GHCal_0001_01_01 - 1)
-    return days
+    return days + t
 
 
 def tcal2zd_2(y, m, d):
@@ -93,7 +93,7 @@ def tcal2zd_2(y, m, d):
     # 並利用 -2303年 來作為計算 128 年循環 (-2304 為不閏年)
     days = floor((y + 2191) * 365.25) - floor((y + 2303) / 128.0) + \
            floor((m - 1) * 30.5001) + d + 363
-    return days
+    return days + t
 
 
 def zd2tcal_1(zd):  # method 1
@@ -169,7 +169,10 @@ def zd2tcal_3(zd):  # method 3
 
 
 def zd2tcal_4(zd):  # method 4, base on method 2
-    """ step by step 逼近法 """
+    """ step by step 逼近法
+    method 2: 0.513753 s (100,000 次)
+    method 4: 0.491170 s, 95.6%
+    """
     ed = zd - (ZD_GHCal_0001_01_01 - 1)  # ed = (p * period_days + d) - (gh_y1_zd - 1)
     yy, mm, dd, tt = 1, 1, 1, 0.0
     while ed <= 0:
