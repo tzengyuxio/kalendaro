@@ -5,10 +5,10 @@ from pytz import timezone
 TZ_CST = timezone('Asia/Taipei')
 TZ_GMT = timezone('Europe/London')
 
-# 《天文年鑑2017》太陽年，190頁，臺北市立天文科學教育館，2017年
+# 《天文年鑑2017》太陽年，190頁，臺北市立天文科學教育館，2017年 (2019 年鑑亦是)
 tropical_year = 365.242190
 
-# 《天文年鑑2017》朔望月，191頁，臺北市立天文科學教育館，2017年
+# 《天文年鑑2017》朔望月，191頁，臺北市立天文科學教育館，2017年 (2019 年鑑亦是)
 synodic_month = 29.530589
 
 # 週期 cycle (未命名)
@@ -229,3 +229,30 @@ def zd2tcal_4(zd):  # method 4, base on method 2
             break
     tt, dd = modf(ed)
     return yy, mm, int(dd), tt
+
+
+def find_fraction(num_float, min_denominator, max_denominator):
+    """
+    尋找分數表示式
+    :param num_float: 實際數值
+    :param min_denominator: 最小分母
+    :param max_denominator: 最大分母
+    :return:
+    """
+    results = [(1, 1, num_float)]  # (分子, 分母, [誤差*分母])
+    for denominator in range(min_denominator, max_denominator):
+        top = num_float * denominator
+        left_int = floor(top)
+        right_int = left_int + 1
+        left_delta, right_delta = top - left_int, right_int - top
+        numerator, delta = (left_int, left_delta) if left_delta < right_delta else (right_int, right_delta)
+        if delta < results[-1][2]:
+            results.append((int(numerator), int(denominator), delta))
+    print('target: {} ({} - {})'.format(num_float, min_denominator, max_denominator))
+    for r in results:
+        if r[0] == 0:
+            continue
+        v = r[0] / r[1]
+        d = v - num_float
+        op = '+' if d > 0 else '-'
+        print('{0:>4d} /{1:>4d} | value: {2:.9f}, delta: {4:} {3:0.9f}'.format(r[0], r[1], v, abs(d), op))

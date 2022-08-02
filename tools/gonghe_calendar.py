@@ -38,6 +38,7 @@ feature_days = [
     (1955171, '唐貞觀 曆書朔旦冬至甲子', '唐太宗貞觀14年11月01日 (平朔戊寅元曆), 甲子, GC:640/12/22; JC:640/12/19 [2]'),
     (1393174, '天再旦於鄭', '前899年4月21日'),
     (1351919, '前1012年，烏加里特在5月9日出現日食', '[wiki:前1010年代]'),
+    (1289081, '前1184年4月24日，傳統意義上認為的特洛伊陷落的日期', '[wiki:前1180年代]'),
     (172598, '埃及曆的開始(之一)', '19 July 4241 BC [wiki(en):5th millennium BC]'),
     (705863, '埃及曆的開始(之二)', '19 July 2781 BC [wiki(en):5th millennium BC]'),
     (259257, '地球的創造(根據Ussher年表)', '22/23 October 4004 BC [wiki(en):5th millennium BC]'),
@@ -209,7 +210,7 @@ def check_convert(days):
 if __name__ == "__main__":
     print_table(feature_days)
     # validate()
-    validate2()
+    # validate2()
     # TODO:
     #   [x] 翻書確定冬至日
     #   [x] 確定一些固定日期作為 test 用資料
@@ -260,3 +261,6 @@ if __name__ == "__main__":
     # print(jd2jcal(0, -0.7))
     # print(jd2gcal(0, 0))
     # print(-2.3 // 1, -2.3 % 1)
+
+    # constants.find_fraction(constants.tropical_year, 1, 1000)
+    # constants.find_fraction(constants.synodic_month, 1, 1000)

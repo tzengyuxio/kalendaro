@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from math import floor, modf
+from math import modf
 
 from skyfield import api
 from skyfield.api import load
@@ -11,25 +11,10 @@ ts = load.timescale()
 e = api.load('de422.bsp')
 td = ts.utc(2019, 6, 26)  # 甲午日(30), 星期三
 bd = ts.utc(1978, 3, 4)  # 乙丑日(1), 星期六
-gan = '甲乙丙丁戊己庚辛壬癸'
-zhi = '子丑寅卯辰巳午未申酉戌亥'
-weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-tropical_year = 365.242190  # 《2019天文年鑑》, p.374, 太陽年
-synodic_month = 29.530589  # 《2019天文年鑑》, p.375, 朔望月
 
 
 # tropical_year = 365.24219264  # Jacobs
 # synodic_month = 29.5305888844  # Jacobs
-
-
-def ganzhi_name(n):
-    g = n % 10
-    z = n % 12
-    return gan[g] + zhi[z]
-
-
-def weekday_name(n):
-    return weekdays[n]
 
 
 def find_dzsd(t, cnt):
@@ -57,24 +42,6 @@ def find_dzsd(t, cnt):
                     print('[{7:4d}] {0:>6.9f},{1:>22s},{2:>6.9f},{3:>22s},{4},{5},{6:0.5f}'.format(*dzsd, id))
         t1 = t0
         t0 = ts.tt_jd(t1.tt - 360)
-
-
-def find_fraction(num_float, min_denominator, max_denominator):
-    results = [(1, 1, num_float)]
-    for denominator in range(min_denominator, max_denominator):
-        left_int = floor(num_float * denominator)
-        right_int = left_int + 1
-        left_delta = num_float - left_int / denominator
-        right_delta = right_int / denominator - num_float
-        numerator, delta = (left_int, left_delta) if left_delta < right_delta else (right_int, right_delta)
-        if delta < results[-1][2]:
-            results.append((int(numerator), int(denominator), delta))
-    for r in results:
-        if r[0] == 0:
-            continue
-        op = '>' if r[0] / r[1] > num_float else '<'
-        print('{0:>4d} /{1:>4d} : delta: {2:0.9f} ({3})'.format(*r, op))
-        # print('{0:>4d} /{1:>4d} : delta: {2:3.9f} ({3})'.format(r[0], r[1], r[0] / r[1], op))
 
 
 # 19年7閏, 391年144閏(大明曆)
@@ -134,9 +101,5 @@ if __name__ == '__main__':
     # ganzhi, weekday = ganzhi_of_jd(bd.tt), weekday_of_jd(bd.tt)
     # print(bd.utc_iso(), ganzhi, weekday)
 
-    # tropical_year = 365.242190  # 2017 天文年鑑, p.190, 太陽年
-    # synodic_month = 29.530589  # 2015 天文年鑑, p.191, 朔望月
-    # find_fraction(tropical_year, 1, 1000)
-    # find_fraction(synodic_month, 1, 1000)
     # find_fraction(3.1415926, 1, 1000)
     # find_zhang(tropical_year, synodic_month)
