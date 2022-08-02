@@ -10,8 +10,8 @@ import constants
 
 ts = load.timescale()
 ts.julian_calendar_cutoff = GREGORIAN_START
-# ephemeris = "de422.bsp"  # Issued in 2008, -3000 to 3000, 623 MB
-ephemeris = "de441_part-1.bsp"  # Issued in 2020, -13200 to 17191, 3.1 GB
+ephemeris = "de422.bsp"  # Issued in 2008, -3000 to 3000, 623 MB
+# ephemeris = "de441_part-1.bsp"  # Issued in 2020, -13200 to 17191, 3.1 GB
 # ephemeris = "de441_part-2.bsp"  # Issued in 2020, -13200 to 17191, 3.1 GB
 eph = load(ephemeris)
 
@@ -44,6 +44,10 @@ feature_days = [
     (259257, '地球的創造(根據Ussher年表)', '22/23 October 4004 BC [wiki(en):5th millennium BC]'),
     (1458496, '魯隱公三年二月己巳日日食', '《三千五百年曆日天象表》981頁，前720年02月22日 (BCE720-02-22)'),
     (2353712, '華盛頓生日', '(JC:1731-02-11(Old Style); GC:1732-02-22)'),
+    (2000000, 'ユリウス暦763年9月14日', '[wiki(ja)]:ユリウス通日'),
+    (1000000, 'ユリウス暦紀元前1976年11月7日', '[wiki(ja)]:ユリウス通日'),
+    (2299160, 'ユリウス暦1582年10月4日', 'ローマ・カトリック教会におけるユリウス暦の最後の日 [wiki(ja)]:ユリウス通日'),
+    (2299161, 'グレゴリオ暦1582年10月15日', 'ローマ・カトリック教会におけるグレゴリオ暦の初日 [wiki(ja)]:ユリウス通日'),
     (2450084, '1996年1月1日', '[wiki:儒略日起點] 的範例'),
     (2442404, '西元 1974 冬至 (1974-12-22)', ''),
     (2443865, '西元 1978 冬至 (1978-12-22)', ''),
@@ -79,7 +83,7 @@ def to_row(jdn):
     g_cal = day_tuple_to_str(jd2gcal(0, jd))
     ce_cal = ts.tt_jd(jd).tt_strftime(format='%Y-%m-%d')
     week = constants.weekdays[constants.weekday_of_jd(jd)]
-    return [jd, zd, ce_cal, gh_cal, j_cal, g_cal, ganzhi, week]
+    return [jdn, zd, ce_cal, gh_cal, j_cal, g_cal, ganzhi, week]
 
 
 def print_table(days):
