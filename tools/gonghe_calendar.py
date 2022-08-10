@@ -18,11 +18,15 @@ eph = load(ephemeris)
 feature_days = [
     # NOTE: jd2gcal, jd2jcal 無法正確處理負數 JD
     # 12:00 Jan 1, 4713 BC (proleptic Julian calendar, via wiki)
+    (-2, '測試用', '資料不正確'),
+    (-1, '測試用', '資料不正確'),
     (constants.JDN_0, '儒略日起點', '西元前4713年（天文學記為-4712年）1月1日平午（世界時12:00）'),
     (constants.JDN_ZD0, '子輿日元點', ''),
     (constants.JDN_ZD0 - 2, '子輿日元點 歲首', ''),
     (613267, '子輿日元點 最近冬至', 'skyfield:(613266.78, -3033-01-13 06:46:14 UT1); 壽星天文曆:(613267, B3034年1月13日)'),
     (constants.JDN_ZD1, '明洪武 朔旦冬至甲子', '明太祖洪武17年11月1日, 星期二, [1]'),
+    (constants.JDN_ZD2, '子輿日 第二週期起點', '西元 5802-12-21'),
+    (constants.JDN_ZD2 - 1, '子輿日 第一週期最後一天', '西元 5802-12-20'),
     (constants.JDN_GCal_0001_01_01, '格里曆 元年', '西漢哀帝元壽2年11月20日'),
     (constants.JDN_JCal_0001_01_01, '儒略曆 元年 (公元)', '西漢哀帝元壽2年11月18日'),
     (1721415, '公元起點 附近冬至', '西漢哀帝元壽2年11月9日'),
@@ -58,6 +62,8 @@ feature_days = [
     (4643353, '西元 8000 冬至 (8000-12-19)', ''),
     (5008595, '西元 9000 冬至 (9000-12-19)', ''),
     (5373471, '西元 9999 冬至 (9999-12-18)', ''),
+    (constants.JDN_WANIAN_START, '萬年曆起點', ''),
+    (constants.JDN_WANIAN_END, '萬年曆終點', ''),
     (5066300, '共和曆 9999年12月30日', ''),
     (5066301, '共和曆 10000年01月01日', '')
 ]
@@ -268,3 +274,8 @@ if __name__ == "__main__":
 
     # constants.find_fraction(constants.tropical_year, 1, 1000)
     # constants.find_fraction(constants.synodic_month, 1, 1000)
+
+    print(constants.zd2jd(constants.tcal2zd_1(-2254, 1, 1)))  # 萬年曆起點 2226-4480 (4480 = 35*128)
+    print(constants.zd2jd(constants.tcal2zd_1(6706, 12, 30)))  # 萬年曆終點 2226+4480 (4480 = 35*128)
+    delta = constants.JDN_WANIAN_END - constants.JDN_WANIAN_START
+    print('{}, {}'.format(delta, delta / constants.tropical_year))

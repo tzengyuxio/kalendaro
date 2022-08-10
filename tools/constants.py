@@ -28,14 +28,16 @@ JDN_JCal_0001_01_01 = 1721424
 JDN_GCal_1978_03_04 = 2443572
 
 # JDN = floor(JD+.5)
-# JD  = ceil(JDN-.5)
+# JD  = ceil(JDN-.5) # 錯誤, 不能這樣反查
 
 # 子輿日
 JD_ZD0 = 613270.5  # 2226910.5 - 1613640
 JD_ZD1 = 2226910.5  # 1384/12/21 (modern Gregorian calendar)
+JD_ZD2 = 3840550.5  # 1384/12/21 (modern Gregorian calendar)
 
 JDN_ZD0 = 613271  # 2226911 - 1613640
 JDN_ZD1 = 2226911  # 1384/12/21 (modern Gregorian calendar)
+JDN_ZD2 = 3840551  # 1384/12/21 (modern Gregorian calendar)
 
 ZD_GHCal_0000_01_01 = 800609  # JD_GHCal_0000_01_01 - JD_ZD0
 ZD_GHCal_0001_01_01 = 800974  # JD_GHCal_0001_01_01 - JD_ZD0
@@ -56,6 +58,12 @@ JD_GHCal_0001_01_01 = 1414244.5
 
 JDN_GHCal_0000_01_01 = 1413880
 JDN_GHCal_0001_01_01 = 1414245
+
+# 萬年曆
+# 萬年曆思路1: JD1 前後 4480年(128*35), 共和-2254至6706年, 合計 8961年
+# 萬年曆思路2: 共和-1280(大約夏朝)至3840年, 合計 5121年, 2864(AD2022)往後1000年左右
+JDN_WANIAN_START = 590624  # JD: 590523.5
+JDN_WANIAN_END = 3863558  # JD: 3863557.5
 
 # 干支
 gan = '甲乙丙丁戊己庚辛壬癸'
